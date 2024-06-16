@@ -73,7 +73,3 @@ The Web Audio Analyzer uses FFT to capture audio frequency data and render it on
 3. [audio3.mp3](https://github.com/ErnaneJ/ja-audio-viewer/blob/main/assets/sounds/sound-0.mp3)
 4. [audio4.mp3](https://github.com/ErnaneJ/ja-audio-viewer/blob/main/assets/sounds/sound-0.mp3)
 5. [audio5.mp3](https://github.com/ErnaneJ/ja-audio-viewer/blob/main/assets/sounds/sound-0.mp3)
-
-### ✅ Conclusion
-
-The Web Audio Analyzer offers a powerful and accessible way to explore and manipulate audio data directly in the browser. Ideal for developers, musicians, and audio enthusiasts who want to better understand the frequency spectrum and apply filters for analysis and enhancement of audio content.
