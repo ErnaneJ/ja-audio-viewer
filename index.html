@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FFT Javascript Audio Visualizer</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="./assets/scripts/audio-viewer.js"></script>
+</head>
+
+<body>
+  <section class="fixed z-50 w-full p-1">
+    <div class="container flex md:flex-col items-start justify-start w-full md:w-64 bg-white shadow rounded px-3 py-2">
+      <div>
+        <h2 class="text-gray-900 text-md mb-1 font-medium title-font">Audio Information</h2>
+        <ul class="list-disc list-inside">
+          <li class="text-sm text-gray-600" id="currentTime">Current Time: 00:00</li>
+          <li class="text-sm text-gray-600" id="duration">Duration: 00:00</li>
+          <li class="text-sm text-gray-600" id="volume">Volume: 0.00%</li>
+          <li class="text-sm text-gray-600" id="averageFrequency">Average Frequency: 0.00 Hz</li>
+          <li class="text-sm text-gray-600" id="maxFrequency">Max Frequency: 0.00 Hz</li>
+          <li class="text-sm text-gray-600">FFT Size: 
+            <select id="fftSize" class="text-sm text-gray-600 rounded border cursor-pointer">
+              <option value="32">32</option>
+              <option value="64">64</option>
+              <option value="128">128</option>
+              <option selected value="256">256</option>
+              <option value="512">512</option>
+              <option value="1024">1024</option>
+              <option value="2048">2048</option>
+              <option value="4096">4096</option>
+              <option value="8192">8192</option>
+              <option value="16384">16384</option>
+            </select>
+          </li>
+          <li class="text-sm text-gray-600" id="frequencyBinCount">Frequency Bin Count: 0</li>
+          <li class="text-sm text-gray-600" id="status">Status: Stopped</li>
+          <li class="text-sm text-gray-600" id="fileName">File Name: -</li>
+          <li class="text-sm text-gray-600" id="sampleRate">Sample Rate: 0.00 Hz</li>
+          <li class="text-sm text-gray-600" id="frequencyInterval">Frequency Interval: 0.00 Hz</li>
+        </ul>
+      </div>
+  
+      <div>
+        <h2 class="md:mt-2 text-gray-900 text-md mb-1 font-medium title-font">Colors Component</h2>
+        <ul class="list-disc list-inside">
+          <li class="text-sm text-gray-600 relative">Red: <input type="range" id="redInput" min="0" max="255" value="0" class="cursor-pointer absolute ml-1 top-0 text-sm text-gray-600 rounded border cursor-pointer"></li>
+          <li class="text-sm text-gray-600 relative">Green: <input type="range" id="greenInput" min="0" max="255" value="0" class="cursor-pointer absolute ml-1 top-0 text-sm text-gray-600 rounded border cursor-pointer"></li>
+          <li class="text-sm text-gray-600 relative">Blue: <input type="range" id="blueInput" min="0" max="255" value="0" class="cursor-pointer absolute ml-1 top-0 text-sm text-gray-600 rounded border cursor-pointer"></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <section class="text-gray-600 body-font relative w-screen h-screen" id="content">
+    <div class="absolute inset-0 bg-gray-300">
+      <canvas id="canvas"></canvas>
+    </div>
+    <div class="container px-5 py-24 mx-auto flex items-center justify-center w-screen h-screen">
+      <div class="w-full md:w-1/2 bg-white rounded-lg px-3 py-4 flex flex-col mt-10 md:mt-0 relative z-10 shadow-md border">
+        <h2 class="text-gray-900 text-2xl mb-1 font-medium title-font text-center">Javascript Audio Visualizer</h2>
+        <p class="leading-relaxed mb-5 text-gray-500 text-sm text-center">Javascript class for manipulating and transforming audio files into visual impulses drawn in a canva element in html.</p>
+        <div class="relative border flex flex-col gap-2 p-2 rounded">
+          <audio id="audio" controls class="w-full"></audio>
+          <hr/>
+          <input class="block w-full text-sm px-2 py-1 border border-gray-300 rounded cursor-pointer text-gray-600 focus:outline-none" id="audioFile" type="file" accept="audio/*">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="./assets/scripts/application.js"></script>
+</body>
+</html>
