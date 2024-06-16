@@ -4,15 +4,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FFT Javascript Audio Visualizer</title>
+  <title>JS Audio Viewer</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="./assets/scripts/audio-viewer.js"></script>
 </head>
 
 <body>
-  <section class="fixed z-50 w-full p-1">
-    <div class="container flex md:flex-col items-start justify-start w-full md:w-64 bg-white shadow rounded px-3 py-2">
+  <section class="fixed z-50 p-1">
+    <div class="container flex md:flex-col items-start justify-start w-full md:w-64 bg-white shadow rounded px-3 py-2 hover:!opacity-100 z-50" style="opacity: 1;">
       <div>
         <h2 class="text-gray-900 text-md mb-1 font-medium title-font">Audio Information</h2>
         <ul class="list-disc list-inside">
@@ -42,34 +42,79 @@
           <li class="text-sm text-gray-600" id="frequencyInterval">Frequency Interval: 0.00 Hz</li>
         </ul>
       </div>
-  
-      <div>
-        <h2 class="md:mt-2 text-gray-900 text-md mb-1 font-medium title-font">Colors Component</h2>
+
+      <div id="filterControls" class="text-sm text-gray-600">
+        <h2 class="md:mt-2 text-gray-900 text-md mb-1 font-medium title-font">Filter Settings</h2>
         <ul class="list-disc list-inside">
-          <li class="text-sm text-gray-600 relative">Red: <input type="range" id="redInput" min="0" max="255" value="0" class="cursor-pointer absolute ml-1 top-0 text-sm text-gray-600 rounded border cursor-pointer"></li>
-          <li class="text-sm text-gray-600 relative">Green: <input type="range" id="greenInput" min="0" max="255" value="0" class="cursor-pointer absolute ml-1 top-0 text-sm text-gray-600 rounded border cursor-pointer"></li>
-          <li class="text-sm text-gray-600 relative">Blue: <input type="range" id="blueInput" min="0" max="255" value="0" class="cursor-pointer absolute ml-1 top-0 text-sm text-gray-600 rounded border cursor-pointer"></li>
+          <li>
+            <label for="filterType">Filter Type:</label>
+            <select id="filterType" class="border rounded cursor-pointer">
+              <option value="lowpass">Lowpass</option>
+              <option value="highpass">Highpass</option>
+              <option value="bandpass">Bandpass</option>
+              <option value="notch">Notch</option>
+            </select>
+          </li>
+          <li>
+            <label for="filterFrequency">Filter Frequency:</label>
+            <input type="number" id="filterFrequency" value="1000" min="0" max="24000" class="border rounded pl-2">
+          </li>
+          <li>
+            <label for="filterQ">Filter Q:</label>
+            <input type="number" id="filterQ" value="1" min="1" max="24000" class="border rounded pl-2">
+          </li>
+        </ul>
+      </div>
+  
+      <div class="text-sm text-gray-600">
+        <h2 class="md:mt-2 text-gray-900 text-md mb-1 font-medium title-font">Interface</h2>
+        <ul class="list-disc list-inside">
+          <li class="text-sm text-gray-600 relative">Wave: <input type="color" id="waveColor" class="cursor-pointer appearance-none rounded border h-5 w-12"></li>
+          <li class="text-sm text-gray-600 relative">Background: <input type="color" id="bgColor" class="cursor-pointer appearance-none rounded border  h-5 w-12"></li>
+          <li class="text-sm text-gray-600 relative mt-1">Opacity El.: <input type="range" id="opacity" step="0.1" min="0.3" max="1" value="1" class="absolute top-[.1rem] ml-2 inline-block cursor-pointer border"></li>
         </ul>
       </div>
     </div>
   </section>
   <section class="text-gray-600 body-font relative w-screen h-screen" id="content">
-    <div class="absolute inset-0 bg-gray-300">
+    <div class="absolute inset-0 bg-gray-300 z-0">
       <canvas id="canvas"></canvas>
     </div>
-    <div class="container px-5 py-24 mx-auto flex items-center justify-center w-screen h-screen">
-      <div class="w-full md:w-1/2 bg-white rounded-lg px-3 py-4 flex flex-col mt-10 md:mt-0 relative z-10 shadow-md border">
-        <h2 class="text-gray-900 text-2xl mb-1 font-medium title-font text-center">Javascript Audio Visualizer</h2>
-        <p class="leading-relaxed mb-5 text-gray-500 text-sm text-center">Javascript class for manipulating and transforming audio files into visual impulses drawn in a canva element in html.</p>
+    <div class="px-5 py-24 mx-auto flex items-center justify-center w-screen h-screen" >
+      <div class="container w-full md:w-1/2 bg-white rounded-lg px-3 py-4 flex flex-col mt-10 md:mt-0 relative z-10 shadow-md border hover:!opacity-100 z-50" style="opacity: 1;">
+        <h2 class="text-gray-900 text-2xl mb-1 font-medium title-font text-center">JS Audio Viewer</h2>
+        <p class="leading-relaxed text-gray-500 text-sm text-center">Real-time audio data viewer using Fast Fourier Transform (FFT).</p>
+        <a href="https://www.github.com/ernanej/javascript-audio-visualizer" target="_blank" class="text-blue-500 text-sm text-center hover:underline mb-5 mt-1">View on Github.</a>
         <div class="relative border flex flex-col gap-2 p-2 rounded">
           <audio id="audio" controls class="w-full"></audio>
           <hr/>
           <input class="block w-full text-sm px-2 py-1 border border-gray-300 rounded cursor-pointer text-gray-600 focus:outline-none" id="audioFile" type="file" accept="audio/*">
         </div>
+        <span class="mt-2 ml-2 text-sm text-gray-600 italic opacity-70 hover:opacity-100 transition-all">Example of audios:
+          <a href="./assets/sounds/sound-0.mp3" target="_blank" class="hover:underline text-blue-500">0.mp3</a>,
+          <a href="./assets/sounds/sound-1.mp3" target="_blank" class="hover:underline text-blue-500">1.mp3</a>,
+          <a href="./assets/sounds/sound-2.mp3" target="_blank" class="hover:underline text-blue-500">2.mp3</a>,
+          <a href="./assets/sounds/sound-3.mp3" target="_blank" class="hover:underline text-blue-500">3.mp3</a>,
+          <a href="./assets/sounds/sound-4.mp3" target="_blank" class="hover:underline text-blue-500">4.mp3</a>,
+          <a href="./assets/sounds/sound-5.mp3" target="_blank" class="hover:underline text-blue-500">5.mp3</a>
+          .
+        </span>
       </div>
     </div>
   </section>
 
-  <script src="./assets/scripts/application.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const audioViewer = new AudioViewer();
+
+      const opacityInput = document.getElementById('opacity');
+      const containers = document.querySelectorAll('.container');
+      opacityInput.addEventListener('input', (event) => {
+        containers.forEach(container => {
+          container.style.opacity = event.target.value;
+        });
+      });
+    });
+  </script>
 </body>
 </html>

@@ -1,28 +1,60 @@
 class AudioViewer {
-  FFT_SIZES = [256, 512, 1024, 2048, 4096, 8192, 16384]
-  
   constructor() {
     this.#getDOMElements();
-
-    [this.width, this.height] = this.#getCanvasSize();
-
-    this.canvasElement.width = this.width;
-    this.canvasElement.height = this.height;
-    this.canvasContext = this.canvasElement.getContext('2d');
+    this.#getCanvasInfo();
 
     this.file = null;
     this.audioAnalyser = null;
     this.audioData = null;
     this.audioSource = null;
 
-    // configurable paramiters
-
     this.fftSize = 256;
+    this.filter = null;
+
     this.redComponent = 150;
     this.greenComponent = 175;
     this.blueComponent = 200;
-
+    this.canvasBgColor = "#ddd";
+  
     this.#addEventListeners();
+  }
+
+  get waveComponentColors(){
+    const color = this.waveColorElement.value;
+    const red = parseInt(color.substr(1,2), 16)
+    const green = parseInt(color.substr(3,2), 16)
+    const blue = parseInt(color.substr(5,2), 16)
+
+    return {
+      red, green, blue
+    }
+  }
+
+  applyFilter() {
+    if(!this.audioContext)  this.audioContext = new AudioContext();
+    if(!this.audioSource)   this.audioSource = this.audioContext.createMediaElementSource(this.audioElement);
+    if(!this.audioAnalyser) this.audioAnalyser = this.audioContext.createAnalyser();
+    if(!this.filter)         this.filter = this.audioContext.createBiquadFilter();
+
+    const hasChanged = this.filter.type !== this.filterTypeSelect.value ||
+    this.filter.frequency.value !== parseFloat(this.filterFrequencyInput.value) ||
+    this.filter.Q.value !== parseFloat(this.filterQInput.value);
+
+    if(!hasChanged) return;
+    
+    this.audioAnalyser.fftSize = this.fftSize;
+
+    this.filter.type = this.filterTypeSelect.value;
+    this.filter.frequency.value = parseFloat(this.filterFrequencyInput.value);
+    this.filter.Q.value = parseFloat(this.filterQInput.value);
+
+    this.audioSource.connect(this.filter);
+    this.audioSource.connect(this.audioAnalyser);
+    this.filter.connect(this.audioAnalyser);
+    this.audioAnalyser.connect(this.audioContext.destination);
+
+    const bufferLength = this.audioAnalyser.frequencyBinCount;
+    this.audioData = new Uint8Array(bufferLength);
   }
 
   onFileChange(event) {
@@ -36,6 +68,14 @@ class AudioViewer {
     this.#captureAudioData();
     this.#renderFrame();
   };
+
+  #getCanvasInfo(){
+    [this.width, this.height] = this.#getCanvasSize();
+
+    this.canvasElement.width = this.width;
+    this.canvasElement.height = this.height;
+    this.canvasContext = this.canvasElement.getContext('2d');
+  }
 
   #getDOMElements(){
     this.contentContainer = document.getElementById('content');
@@ -54,9 +94,12 @@ class AudioViewer {
     this.fileNameElement = document.getElementById('fileName');
     this.sampleRateElement = document.getElementById('sampleRate');
     this.frequencyIntervalElement = document.getElementById('frequencyInterval');
-    this.redInput = document.getElementById('redInput');
-    this.greenInput = document.getElementById('greenInput');
-    this.blueInput = document.getElementById('blueInput');
+    this.waveColorElement = document.getElementById('waveColor');
+    this.bgColorElement = document.getElementById('bgColor');
+
+    this.filterTypeSelect = document.getElementById('filterType');
+    this.filterFrequencyInput = document.getElementById('filterFrequency');
+    this.filterQInput = document.getElementById('filterQ');
   }
 
   #addEventListeners() {
@@ -64,18 +107,27 @@ class AudioViewer {
       this.fftSize = parseInt(event.target.value);
       this.#captureAudioData();
     });
-    this.redInput.value = this.redComponent;
-    this.redInput.addEventListener('change', (event) => this.redComponent = parseInt(event.target.value));
-    this.greenInput.value = this.greenComponent;
-    this.greenInput.addEventListener('change', (event) => this.greenComponent = parseInt(event.target.value));
-    this.blueInput.value = this.blueComponent;
-    this.blueInput.addEventListener('change', (event) => this.blueComponent = parseInt(event.target.value));
+
+    this.bgColorElement.value = `rgb(${this.redComponent}, ${this.greenComponent}, ${this.blueComponent})`;
+    this.waveColorElement.addEventListener('input', (event) => {
+      const { red, green, blue } = this.waveComponentColors;
+
+      this.redComponent = red;
+      this.greenComponent = green;
+      this.blueComponent = blue;
+    });
+
+    this.bgColorElement.addEventListener('input', (event) => { this.canvasBgColor = event.target.value; });
 
     this.fileElement.addEventListener('change', this.onFileChange.bind(this));
     this.audioElement.addEventListener('timeupdate', this.#updateAudioInfo.bind(this));
     this.audioElement.addEventListener('play', () => { this.statusElement.textContent = 'Status: Playing'; });
     this.audioElement.addEventListener('pause', () => { this.statusElement.textContent = 'Status: Paused'; });
     this.audioElement.addEventListener('ended', () => { this.statusElement.textContent = 'Status: Ended'; });
+
+    this.filterTypeSelect.addEventListener('change', this.applyFilter.bind(this));
+    this.filterFrequencyInput.addEventListener('change', this.applyFilter.bind(this));
+    this.filterQInput.addEventListener('change', this.applyFilter.bind(this));
   }
 
   #updateAudioInfo() {
@@ -86,20 +138,12 @@ class AudioViewer {
     this.sampleRateElement.textContent = `Sample Rate: ${this.audioContext.sampleRate} Hz`;
     this.averageFrequencyElement.textContent = `Average Frequency: ${(this.audioData.reduce((acc, val) => acc + val, 0) / this.audioData.length).toFixed(2)} Hz`;
     this.maxFrequencyElement.textContent = `Max Frequency: ${Math.max(...this.audioData)} Hz`;
+    
+    this.applyFilter();
   }
 
   #captureAudioData() {
-    if(!this.audioContext) this.audioContext = new AudioContext();
-    if(!this.audioSource)  this.audioSource = this.audioContext.createMediaElementSource(this.audioElement);
-    this.audioAnalyser = this.audioContext.createAnalyser();
-
-    this.audioSource.connect(this.audioAnalyser);
-    this.audioAnalyser.connect(this.audioContext.destination);
-
-    this.audioAnalyser.fftSize = this.fftSize; // 256, 512, 1024, 2048, 4096, 8192, 16384
-
-    const bufferLength = this.audioAnalyser.frequencyBinCount;
-    this.audioData = new Uint8Array(bufferLength);
+    this.applyFilter();
 
     this.sampleRateElement.textContent = `Sample Rate: ${this.audioContext.sampleRate} Hz`;
     this.frequencyBinCountElement.textContent = `Frequency Bin Count: ${this.audioAnalyser.frequencyBinCount}`;
@@ -121,12 +165,12 @@ class AudioViewer {
 
     this.audioAnalyser.getByteFrequencyData(this.audioData);
 
-    this.canvasContext.fillStyle = "#ddd";
+    this.canvasContext.fillStyle = this.canvasBgColor;
     this.canvasContext.fillRect(0, 0, this.width, this.height);
 
     const min = Math.min(...this.audioData);
     const max = Math.max(...this.audioData);
-    const normalize = (value) => (value - min) / (max - min) * 100;
+    const normalize = (value) => (value - min) / (max - min) * 130;
 
     let data = this.audioData.map(normalize);
         data = [...data.reverse(), ...data.reverse()];
